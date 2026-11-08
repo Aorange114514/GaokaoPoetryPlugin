@@ -5,7 +5,7 @@ description: 随机展示高考必背60篇古诗文名句，支持按教材册�
 entranceAssembly: "GaokaoPoetryPlugin.dll"
 url: https://github.com/xiaoxinxin-Zn/GaokaoPoetryPlugin
 author: Xin_Zn
-version: 1.2.0.0
+version: 1.2.1.0
 icon: icon.png
 readme: README.md
 repoOwner: xiaoxinxin-Zn

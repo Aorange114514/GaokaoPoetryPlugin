@@ -1,106 +1,57 @@
-# v1.2.0.0 更新说明
+# v1.2.1.0 更新说明
 
-> **发布日期**: 2026-05-31  
-> **下载**: [GaokaoPoetryPlugin.cipx](https://github.com/xiaoxinxin-Zn/GaokaoPoetryPlugin/releases/download/v1.2.0.0/GaokaoPoetryPlugin.cipx)
-
----
-
-## 一、数据层重大更新
-
-### 1.1 60 篇全覆盖，每篇 ≥4 句
-
-上一版本部分篇目覆盖不足。本次将所有 60 篇课标必背古诗文全部补全至不少于 4 句，最终 **251 条名句**，分布如下：
-
-| 教材册别 | 篇目数 | 名句数 | 代表篇目 |
-|----------|--------|--------|----------|
-| 必修上册 | 16 | 67 | 赤壁赋、登高、琵琶行、劝学、短歌行等 |
-| 必修下册 | 8 | 32 | 阿房宫赋、六国论、谏太宗十思疏等 |
-| 选择性必修上册 | 5 | 23 | 论语十二章、春江花月夜、将进酒等 |
-| 选择性必修中册 | 7 | 29 | 屈原列传、过秦论、燕歌行等 |
-| 选择性必修下册 | 14 | 60 | 离骚、蜀道难、陈情表、项脊轩志等 |
-| 其他 | 10 | 40 | 报任安书、山居秋暝、青玉案·元夕等 |
-| **合计** | **60** | **251** | |
-
-### 1.2 内容精确对齐原文
-
-- 所有 251 条名句的 `content` 字段均为 `poetry.json` 对应篇目全文的**精确子串**，杜绝错字漏字
-- 修复了 35 处标点与原文不一致的问题（如 `；`→`。`、`，`→`。`）
-- 移除了 25 条在原文中找不到对应内容的错误条目：
-  - 《归园田居》误收《饮酒》诗句"采菊东篱下，悠然见南山"
-  - 文字差异：`帖`/`贴`、`受`/`益`、`锁哪`/`唢呐`、`吴越`/`胡越` 等
-  - 《论语十二章》原文选章不一致
-  - 《离骚》只覆盖了前半段，后段名句缺失
-
-### 1.3 名句选取策略
-
-新增条目聚焦于**高考默写高频考点**，优先收录历年真题中出现过的名句和新教材必背篇目的核心句子。
+> **发布日期**: 2026-11-08  
+> **下载**: [GaokaoPoetryPlugin.cipx](https://github.com/xiaoxinxin-Zn/GaokaoPoetryPlugin/releases/download/v1.2.1.0/GaokaoPoetryPlugin.cipx)
 
 ---
 
-## 二、新增特性
+## 一、新增功能：仅展示背诵篇目
 
-### 2.1 易错字数据库
+### 1.1 内容筛选
 
-新增 `Assets/typo_prone_chars.json`，收录 **22 组高考高频易错字**，每组包含正字、常见误写字、原文上下文和辨析注释：
+设置面板新增「内容筛选」区域，勾选「仅展示背诵篇目」后，轮播池只包含课本要求背诵的篇目，并与册别筛选自动取交集：
 
-| 正字 | 常见误写 | 篇目 | 辨析 |
-|------|----------|------|------|
-| 贴 | 帖 | 菩萨蛮 | 贴饰 vs 字帖 |
-| 唢 | 锁 | 朝天子·咏喇叭 | 唢呐：乐器名 |
-| 益 | 受 | 五代史伶官传序 | 谦得益：得到益处 |
-| 采 | 彩 | 登泰山记 | 原文作"采"非"彩" |
-| 赢 | 嬴 | 永遇乐·京口北固亭怀古 | 赢得 vs 嬴政 |
-| 酹 | 捋 | 念奴娇·赤壁怀古 | 酹(lèi)：洒酒祭奠 |
-| 蜉 | 浮 | 赤壁赋 | 蜉蝣(fú yóu) |
-| 衿 | 襟 | 短歌行 | 衿：衣领 |
-| 砌 | 彻 | 虞美人 | 玉砌：玉石台阶 |
-| 藉 | 籍 | 赤壁赋 | 枕藉：互相枕着 |
-| ... | ... | ... | 共 22 组，详见文件 |
+- **勾选后**：只轮播背诵篇目；若当前册别筛选下没有匹配条目，组件会提示「暂无匹配的背诵篇目条目，请检查册别筛选」
+- **取消勾选**：立即恢复 60 篇全量轮播
+- **数据未加载时**：明确提示「背诵篇目数据未加载」，不再静默空白
 
-> 后续版本计划在 UI 中对这些字做高亮标注。
+### 1.2 背诵篇目数据
 
-### 2.2 数据校验脚本
+新增 `Assets/mustResite.json`：**21 篇、533 条名句**，按高考要求收录全文或指定段落：
 
-新增 `validate_data.py`，每次构建自动运行，校验项包括：
+- 《师说》仅收录第一段（「古之学者必有师……道之所存，师之所存也」）
+- 《屈原列传》收录第三段（「屈平疾王听之不聪也……虽与日月争光可也」）
+- 《离骚》收录节选第 3 段
+- 其余篇目按教材要求全文或指定段落收录
 
-- `divided.json` 每条 content 都是 `poetry.json` 原文的精确子串
-- 60 篇全部覆盖，每篇 ≥4 句
-- 无重复条目、无非法 book 值
-- 无孤立/多余篇目
+收录篇目：短歌行、沁园春·长沙、梦游天姥吟留别、登高、念奴娇·赤壁怀古、劝学、师说、赤壁赋、子路、曾皙、冉有、公西华侍坐、阿房宫赋、六国论、《论语》十二章、大学之道、《老子》四章、屈原列传、过秦论、离骚（节选）、蜀道难、蜀相、陈情表、兰亭集序。
 
-```bash
-python validate_data.py              # 标准校验
-python validate_data.py --ci         # CI 模式（失败→非零退出码）
-python download_data.py --validate   # 下载后自动校验
-```
+数据在构建时嵌入 DLL，离线可用，不依赖网络。
 
-### 2.3 构建时自动校验
+### 1.3 全新插件图标
 
-`GaokaoPoetry.csproj` 添加了 `BeforeBuild` target，每次 `dotnet build -c Release` 自动运行数据校验。数据不一致时输出 MSBuild Warning，防止错误数据被打包发布。
+插件图标更换为宣纸底色与墨色背景的新设计：`icon.png`（512×512），并附 `icon.svg` 矢量源文件，方便后续调整。
 
 ---
 
-## 三、Bug 修复
+## 二、数据校验增强
 
-### 3.1 修复数据加载竞态条件
+`validate_data.py` 新增背诵篇目校验，接入构建流程（`dotnet build` 时自动执行，失败会输出 MSBuild Warning）：
 
-**问题**：嵌入资源加载失败后启动网络回退，但定时器同时开始空转，期间始终显示"正在加载..."且无法恢复。
+- **结构完整性**：`title` / `author` / `content` 均不能为空
+- **重复条目检查**：同一篇目下不得出现重复名句
+- **与原文一致性**：每条名句必须是 `poetry.json` 对应篇目原文的精确子串
 
-**修复**：`OnLoaded` 改为异步方法，等数据就绪后才启动定时器和首次刷新，避免空转。
+> **校验盲区说明**（透明起见）：`poetry.json` 未收录大学之道、《老子》四章、兰亭集序、沁园春·长沙 四篇，对应 80 条名句无法比对原文；《离骚（节选）》因 `poetry.json` 只收录开头，按设计跳过比对（14 条）。以上条目依赖 `mustResite.json` 编写时的核对。
 
-### 3.2 异常不再静默吞没
+## 三、构建与发布
 
-**问题**：`PoetryService` 中 `catch { }` 空代码块，加载失败时用户永远只看到"正在加载..."，无法排查原因。
+- 新增 `package_cipx.py`：一条命令生成 ClassIsland 插件包 `cipx/GaokaoPoetryPlugin.cipx`
+- 发布包附带 PDB（便于排查问题）、CHANGELOG 与 LICENSE
 
-**修复**：新增 `LastError` 属性区分"嵌入资源缺失""网络超时""JSON 格式错误"等场景，UI 显示具体错误信息。
+## 四、修复
 
----
-
-## 四、代码优化
-
-- `PoetryService` 注册到 DI 容器（`AddSingleton`），通过构造函数注入
-- `PoetryComponentSettings` 用内部 `Dictionary<string, bool>` 统一管理 6 个册别布尔属性，消除重复代码
-- `download_data.py` 新增 `--validate` 参数和更完善的日志输出
+- 修正文档笔误：背诵篇目条数「534」→「533」（README、CHANGELOG）
 
 ---
 
@@ -108,10 +59,10 @@ python download_data.py --validate   # 下载后自动校验
 
 ### 新安装
 1. 下载 `GaokaoPoetryPlugin.cipx`
-2. 拖入 ClassIsland 插件目录
+2. 拖入 ClassIsland 插件页面（或解压到数据目录 `data/Plugins/gaokao-poetry/`）
 
-### 从 v1.1.0.0 升级
-直接覆盖安装即可，设置会自动保留，新版数据向后兼容。
+### 从 v1.2.0.0 升级
+直接覆盖安装即可，原有设置（册别筛选、轮播间隔、字体大小等）会自动保留。
 
 ---
 
@@ -128,27 +79,31 @@ python download_data.py --validate   # 下载后自动校验
 GaokaoPoetryPlugin/
 ├── Assets/
 │   ├── divided.json              # 251 条名句（嵌入资源）
-│   └── typo_prone_chars.json     # 22 组易错字（嵌入资源）★新增
+│   ├── mustResite.json           # 533 条背诵篇目名句（嵌入资源）★新增
+│   └── typo_prone_chars.json     # 23 组易错字（嵌入资源）
 ├── Components/
-│   ├── PoetryComponent.cs        # 主组件（async 加载 + DI 注入）
+│   ├── PoetryComponent.cs        # 主组件（async 加载 + 定时轮播）
 │   ├── PoetryComponent.xaml      # UI 布局
-│   ├── PoetryComponentSettings.cs # 设置类
+│   ├── PoetryComponentSettings.cs # 设置类（含「仅展示背诵篇目」）
 │   ├── PoetryComponentSettingsControl.xaml
 │   └── PoetryComponentSettingsControl.xaml.cs
 ├── Models/
 │   └── PoetryItem.cs             # 数据模型
 ├── Services/
-│   └── PoetryService.cs          # 数据服务（LastError 错误报告）
+│   ├── PoetryService.cs          # 数据服务（嵌入加载 + 网络回退）
+│   └── RecitationCatalog.cs      # 背诵篇目 → 册别映射 ★新增
 ├── Plugin.cs                     # 插件入口（DI 注册）
-├── manifest.yml                  # 插件清单 v1.2.0.0
+├── manifest.yml                  # 插件清单 v1.2.1.0
 ├── GaokaoPoetry.csproj           # 项目文件（BeforeBuild 自动校验）
-├── validate_data.py              # 数据校验脚本 ★新增
+├── validate_data.py              # 数据校验脚本（含背诵篇目校验）
 ├── download_data.py              # 数据下载脚本
+├── package_cipx.py               # CIPX 打包脚本 ★新增
 ├── poetry.json                   # 60 篇古诗文全文（开发参考）
 ├── README.md
 ├── CHANGELOG.md
 ├── RELEASE_NOTES.md
-└── icon.png
+├── icon.png                      # 插件图标（512×512）★更新
+└── icon.svg                      # 图标矢量源文件 ★新增
 ```
 
-<!-- CLASSISLAND_PKG_MD5 {"GaokaoPoetryPlugin.cipx": "06299241dddce41d724a3dd27be5f670"} -->
+<!-- CLASSISLAND_PKG_MD5 {"GaokaoPoetryPlugin.cipx": "f78b635a4d972808a040ad84f7cc0d5e"} -->
