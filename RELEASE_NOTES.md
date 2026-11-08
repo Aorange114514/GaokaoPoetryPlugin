@@ -73,6 +73,14 @@
 
 ---
 
+## 七、贡献者致谢
+
+本次更新感谢以下贡献者：
+
+- [@Aorange114514](https://github.com/Aorange114514)：贡献「仅展示背诵篇目」完整功能（[PR #2](https://github.com/xiaoxinxin-Zn/GaokaoPoetryPlugin/pull/2)）——内容筛选选项、`mustResite.json` 背诵篇目数据（21 篇 533 条）、`validate_data.py` 校验增强与 `package_cipx.py` 打包脚本
+
+---
+
 ## 完整文件清单
 
 ```
