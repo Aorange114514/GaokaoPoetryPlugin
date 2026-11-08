@@ -46,6 +46,9 @@ public partial class PoetryComponent : ComponentBase<PoetryComponentSettings>
     /// </summary>
     private async Task LoadDataAsync()
     {
+        // 0. 背诵篇目数据（与主数据相互独立，失败不影响主数据）
+        _poetryService.LoadRecitationFromEmbeddedResource();
+
         // 1. 尝试嵌入资源（离线模式）
         var ok = _poetryService.LoadFromEmbeddedResource();
         if (ok) return;
@@ -85,6 +88,7 @@ public partial class PoetryComponent : ComponentBase<PoetryComponentSettings>
             case nameof(PoetryComponentSettings.BookSelectiveMiddle):
             case nameof(PoetryComponentSettings.BookSelectiveDown):
             case nameof(PoetryComponentSettings.BookOther):
+            case nameof(PoetryComponentSettings.ShowOnlyRecitation):
                 Dispatcher.UIThread.Invoke(() => RefreshPoetry());
                 break;
             default:
@@ -126,10 +130,15 @@ public partial class PoetryComponent : ComponentBase<PoetryComponentSettings>
             return;
         }
 
-        var item = _poetryService.GetRandom(allowed);
+        var item = _poetryService.GetRandom(allowed, Settings.ShowOnlyRecitation);
         if (item == null)
         {
-            PoetryTextBlock.Text = "暂无匹配的古诗文条目";
+            if (Settings.ShowOnlyRecitation)
+                PoetryTextBlock.Text = _poetryService.RecitationCount == 0
+                    ? "背诵篇目数据未加载"
+                    : "暂无匹配的背诵篇目条目\n请检查册别筛选";
+            else
+                PoetryTextBlock.Text = "暂无匹配的古诗文条目";
             return;
         }
 

@@ -16,6 +16,7 @@ namespace GaokaoPoetryPlugin.Services;
 public class PoetryService
 {
     private readonly List<PoetryItem> _items = new();
+    private readonly List<PoetryItem> _recitationItems = new();
     private readonly Random _random = new();
     private readonly HttpClient _http = new();
     private bool _loaded = false;
@@ -25,6 +26,9 @@ public class PoetryService
 
     /// <summary>已加载的条目数量</summary>
     public int Count => _items.Count;
+
+    /// <summary>已加载的背诵篇目条目数量</summary>
+    public int RecitationCount => _recitationItems.Count;
 
     /// <summary>最近一次加载的错误信息（null 表示无错误）</summary>
     public string? LastError { get; private set; }
@@ -77,6 +81,45 @@ public class PoetryService
     }
 
     /// <summary>
+    /// 从嵌入资源加载背诵篇目数据 mustResite.json。
+    /// 该数据不属于常规 60 篇数据集，仅在勾选「仅展示背诵篇目」时参与轮播；
+    /// 数据中不含册别字段，加载时按篇名补齐。
+    /// </summary>
+    /// <returns>是否加载到数据（资源缺失或为空返回 false，不影响主数据）</returns>
+    public bool LoadRecitationFromEmbeddedResource()
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = assembly.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("mustResite.json"));
+
+            if (resourceName == null)
+                return false;
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+                return false;
+
+            using var reader = new StreamReader(stream);
+            var items = JsonSerializer.Deserialize<List<PoetryItem>>(reader.ReadToEnd());
+            if (items == null)
+                return false;
+
+            foreach (var item in items)
+                item.book = RecitationCatalog.GetBook(item.title);
+
+            _recitationItems.Clear();
+            _recitationItems.AddRange(items);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 从网络加载数据（在线回退模式）。
     /// </summary>
     /// <returns>是否加载成功</returns>
@@ -121,9 +164,13 @@ public class PoetryService
     /// <summary>
     /// 从允许的册别列表中随机选取一条。
     /// </summary>
-    public PoetryItem? GetRandom(List<string> allowedBooks)
+    /// <param name="allowedBooks">允许的册别</param>
+    /// <param name="onlyRecitation">仅从背诵篇目数据（mustResite.json）中选取</param>
+    public PoetryItem? GetRandom(List<string> allowedBooks, bool onlyRecitation = false)
     {
-        var filtered = _items.Where(i => allowedBooks.Contains(i.book)).ToList();
+        IEnumerable<PoetryItem> pool = onlyRecitation ? _recitationItems : _items;
+
+        var filtered = pool.Where(i => allowedBooks.Contains(i.book)).ToList();
         if (filtered.Count == 0) return null;
         return filtered[_random.Next(filtered.Count)];
     }

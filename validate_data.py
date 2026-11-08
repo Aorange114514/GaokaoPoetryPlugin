@@ -24,6 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 DIVIDED = ROOT / "Assets" / "divided.json"
+MUST_RESITE = ROOT / "Assets" / "mustResite.json"
 POETRY = ROOT / "poetry.json"
 
 VALID_BOOKS = {"必修上", "必修下", "选择性必修上", "选择性必修中", "选择性必修下", "其他"}
@@ -77,6 +78,66 @@ def match_title(dt: str, poetry_titles: set[str]) -> str | None:
                 return pt
 
     return None
+
+
+def normalize_all(s: str) -> str:
+    """只保留文字与数字，忽略标点、空白和异体字差异，用于宽松比对。"""
+    s = s.replace('皙', '晳')
+    return re.sub(r'[^\u4e00-\u9fffA-Za-z0-9]', '', s)
+
+
+def core_title(title: str) -> str:
+    """去掉括号注记后归一化篇名。"""
+    return normalize_all(re.sub(r'[（(][^）)]*[）)]', '', title))
+
+
+def check_recitation(poetry_list: list, errors: list, warnings: list) -> None:
+    """校验背诵篇目数据 mustResite.json。"""
+    if not MUST_RESITE.exists():
+        warnings.append("mustResite.json 不存在，跳过背诵篇目数据校验")
+        return
+
+    try:
+        items = load_json(MUST_RESITE)
+    except Exception as exc:
+        errors.append(f"mustResite.json 解析失败: {exc}")
+        return
+
+    if not isinstance(items, list) or not items:
+        errors.append("mustResite.json 为空或不是数组")
+        return
+
+    # poetry.json 仅收录《离骚》开头，无法作为该篇的比对依据
+    reference_skip = {"离骚"}
+    poetry_norm = {core_title(p['title']): normalize_all(p['content']) for p in poetry_list}
+
+    seen = {}
+    for index, item in enumerate(items):
+        title = item.get('title', '')
+        author = item.get('author', '')
+        content = (item.get('content') or [''])[0]
+        if not title or not author or not content.strip():
+            errors.append(f"[mustResite {index}] 缺少 title/author/content")
+            continue
+
+        key = (title, content)
+        if key in seen:
+            warnings.append(f"[mustResite {index}] 重复条目: {title} / {content[:30]}")
+        seen[key] = index
+
+        norm_title = core_title(title)
+        reference = poetry_norm.get(norm_title)
+        if reference is None or norm_title in reference_skip:
+            continue
+
+        line = normalize_all(re.sub(r'[（(][^）)]*[）)]', '', content))
+        if line and line not in reference:
+            errors.append(
+                f"[mustResite {index}] 《{title}》内容与 poetry.json 原文不一致: {content[:40]}"
+            )
+
+    titles = sorted({item.get('title', '') for item in items if item.get('title')})
+    print(f"  Recitation: {len(items)} entries, {len(titles)} works")
 
 
 def main() -> int:
@@ -194,6 +255,9 @@ def main() -> int:
 
     # ---- Rule 6: Extra poems in divided not in poetry ----
     # Already caught by unmatched titles
+
+    # ---- Rule 7: 背诵篇目数据（mustResite.json） ----
+    check_recitation(poetry_list, errors, warnings)
 
     # ---- Print report ----
     ret = report(errors, warnings, ci_mode)
