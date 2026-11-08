@@ -14,6 +14,7 @@ public class PoetryComponentSettings : INotifyPropertyChanged
     private bool _showAuthor = true;
     private bool _showTitle = true;
     private double _fontSize = 14;
+    private bool _showOnlyRecitation = false;
 
     public int IntervalSeconds
     {
@@ -37,6 +38,13 @@ public class PoetryComponentSettings : INotifyPropertyChanged
     {
         get => _fontSize;
         set { _fontSize = value; OnPropertyChanged(); }
+    }
+
+    /// <summary>仅展示高考背诵篇目（含指定段落）。</summary>
+    public bool ShowOnlyRecitation
+    {
+        get => _showOnlyRecitation;
+        set { _showOnlyRecitation = value; OnPropertyChanged(); }
     }
 
     // ---- 册别筛选 ----
